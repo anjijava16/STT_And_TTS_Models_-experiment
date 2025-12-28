@@ -2,7 +2,7 @@
 1. speech-to-text conversion using Groq's Whisper model.
 
 # TTS  (Text to Speech)
-1. text-to-speech conversion using ElevenLabs.
+1. text-to-speech conversion using ElevenLabs. (REQUIRED_ENV_VARS = ["ELEVENLABS_API_KEY", "ELEVENLABS_VOICE_ID"])
 
 # TTI (Text to Image)
 1. TTI_MODEL_NAME = "black-forest-labs/FLUX.1-schnell-Free"
