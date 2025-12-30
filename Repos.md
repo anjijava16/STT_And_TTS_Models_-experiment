@@ -19,3 +19,4 @@
 # RAG with Voice RAG 
 1. https://www.youtube.com/watch?v=hwCmfThIiS4
 2. https://github.com/debnsuma/fcc-ai-engineering-aws/blob/main/03-multimodal-rag/01_Multi_modal_RAG_Amazon_Bedrock_Nova.ipynb
+3. https://medium.com/@bl3e967/using-langgraph-and-mcp-servers-to-create-my-own-voice-assistant-d9f7443dc7b9
