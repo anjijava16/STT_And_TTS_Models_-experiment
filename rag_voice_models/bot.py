@@ -62,6 +62,8 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     # llm = OpenAILLMService(base_url="https://api.venice.ai/api/v1", model="openai-gpt-oss-120b")
     # llm = OLLamaLLMService(model="granite3.2-vision:latest")
 
+    llm.register_direct_function(retrieve_leukemia_knowledge_base)
+
     messages = [
         {
             "role": "system",
