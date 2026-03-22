@@ -7,9 +7,10 @@ from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.task import PipelineTask, PipelineParams
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.frames.frames import (
-    AudioRawFrame,
     EndFrame,
     Frame,
+    InputAudioRawFrame,
+    OutputAudioRawFrame,
     TextFrame,
     TTSAudioRawFrame,
     TranscriptionFrame,
@@ -40,7 +41,9 @@ def _build_stt_service(provider: PipecatSTTProvider, language: str, model: str |
     if provider == PipecatSTTProvider.OPENAI:
         return OpenAISTTService(
             api_key=_get_openai_key(),
-            model=model or get_settings().whisper_model,
+            settings=OpenAISTTService.Settings(
+                model=model or get_settings().whisper_model,
+            ),
             language=language,
         )
     raise STTProviderError(provider, "Unsupported pipecat STT provider")
@@ -50,15 +53,17 @@ def _build_tts_service(
     provider: PipecatTTSProvider, voice: str, model: str | None, speed: float | None
 ) -> FrameProcessor:
     if provider == PipecatTTSProvider.OPENAI:
-        kwargs = {
-            "api_key": _get_openai_key(),
-            "voice": voice,
-        }
+        tts_settings = OpenAITTSService.Settings(
+            voice=voice,
+        )
         if model:
-            kwargs["model"] = model
+            tts_settings.model = model
         if speed:
-            kwargs["speed"] = speed
-        return OpenAITTSService(**kwargs)
+            tts_settings.speed = speed
+        return OpenAITTSService(
+            api_key=_get_openai_key(),
+            settings=tts_settings,
+        )
     raise TTSProviderError(provider, "Unsupported pipecat TTS provider")
 
 
@@ -76,7 +81,7 @@ class ResultCollector(FrameProcessor):
         await super().process_frame(frame, direction)
         if isinstance(frame, TranscriptionFrame):
             self.transcriptions.append(frame.text)
-        elif isinstance(frame, (TTSAudioRawFrame, AudioRawFrame)):
+        elif isinstance(frame, (TTSAudioRawFrame, OutputAudioRawFrame)):
             self.audio_chunks.append(frame.audio)
             self.sample_rate = frame.sample_rate
             self.num_channels = frame.num_channels
@@ -128,7 +133,7 @@ class PipecatService:
             sample_rate = 16000
             num_channels = 1
 
-        audio_frame = AudioRawFrame(audio=pcm_data, sample_rate=sample_rate, num_channels=num_channels)
+        audio_frame = InputAudioRawFrame(audio=pcm_data, sample_rate=sample_rate, num_channels=num_channels)
 
         async def feed_audio():
             await task.queue_frame(audio_frame)
@@ -201,7 +206,7 @@ class PipecatService:
             sample_rate = 16000
             num_channels = 1
 
-        audio_frame = AudioRawFrame(audio=pcm_data, sample_rate=sample_rate, num_channels=num_channels)
+        audio_frame = InputAudioRawFrame(audio=pcm_data, sample_rate=sample_rate, num_channels=num_channels)
 
         async def feed_audio():
             await task.queue_frame(audio_frame)
