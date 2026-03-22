@@ -1,0 +1,98 @@
+## What is Leukemia?
+
+Leukemia is a type of cancer that affects the blood and bone marrow. It occurs when the body produces abnormal white blood cells that do not function properly. These abnormal cells crowd out healthy blood cells, leading to problems with infection, anemia, and bleeding. Leukemia is broadly classified into acute and chronic forms, and further into lymphocytic and myeloid types based on which blood cells are affected.
+
+## Types of Leukemia
+
+### Acute Lymphoblastic Leukemia (ALL)
+Acute Lymphoblastic Leukemia (ALL) is a fast-growing cancer of the lymphoid cells. It is the most common type of leukemia in children, accounting for approximately 75% of childhood leukemia cases. In ALL, the bone marrow produces too many immature lymphocytes called lymphoblasts. These blast cells accumulate rapidly and crowd out normal blood cells. The blast percentage in the bone marrow is typically greater than 20% at diagnosis. Common symptoms include fatigue, frequent infections, easy bruising, bone pain, and swollen lymph nodes.
+
+### Acute Myeloid Leukemia (AML)
+Acute Myeloid Leukemia (AML) is a fast-growing cancer of the myeloid cells. It is more common in adults, particularly those over 65 years of age. AML is characterized by the rapid proliferation of abnormal myeloblasts in the bone marrow, with blast percentages exceeding 20%. The disease can involve various myeloid cell lineages. AML is classified into several subtypes based on the FAB (French-American-British) classification system, ranging from M0 to M7. Common chromosomal abnormalities include t(8;21), t(15;17), and inv(16).
+
+### Chronic Lymphocytic Leukemia (CLL)
+Chronic Lymphocytic Leukemia (CLL) is a slow-growing cancer of the lymphoid cells. It is the most common leukemia in adults in Western countries, typically diagnosed in people over 55 years of age. CLL is characterized by the accumulation of mature-appearing but functionally incompetent lymphocytes. Unlike acute leukemias, the blast percentage in CLL is typically less than 5%. The Rai and Binet staging systems are used to classify CLL. Common features include lymphocytosis (elevated lymphocyte count above 5,000/µL), lymphadenopathy, and splenomegaly.
+
+### Chronic Myeloid Leukemia (CML)
+Chronic Myeloid Leukemia (CML) is a slow-growing cancer of the myeloid cells. It accounts for approximately 15% of adult leukemias. CML is defined by the presence of the Philadelphia chromosome, which results from a reciprocal translocation between chromosomes 9 and 22, written as t(9;22)(q34;q11.2). This translocation creates the BCR-ABL1 fusion gene, which produces an abnormal tyrosine kinase protein that drives uncontrolled cell proliferation. CML progresses through three phases: chronic phase (blast percentage less than 10%), accelerated phase (blast percentage 10-19%), and blast crisis (blast percentage 20% or greater).
+
+## Blast Percentage Differences Between Acute and Chronic Leukemia
+
+The blast percentage is a critical diagnostic marker that differentiates acute from chronic leukemia. In acute leukemia (both ALL and AML), the blast percentage in the bone marrow is 20% or greater at diagnosis. These blasts are immature, non-functional cells that proliferate rapidly. In chronic leukemia (CLL and CML), the blast percentage is typically below 10% in the chronic phase. CML may progress to blast crisis where the blast percentage rises above 20%, effectively transforming into an acute-like disease.
+
+## The Philadelphia Chromosome and CML
+
+The Philadelphia chromosome is the hallmark genetic abnormality of Chronic Myeloid Leukemia (CML). It was first discovered in 1960 in Philadelphia, Pennsylvania. The translocation t(9;22)(q34;q11.2) involves the ABL1 gene on chromosome 9 and the BCR gene on chromosome 22. The resulting BCR-ABL1 fusion gene encodes a constitutively active tyrosine kinase that promotes cell division and inhibits DNA repair. The discovery of this molecular mechanism led to the development of tyrosine kinase inhibitors (TKIs) such as imatinib (Gleevec), which revolutionized CML treatment.
+
+## Diagnosis of Leukemia
+
+Diagnosis of leukemia involves several tests and procedures:
+
+1. Complete Blood Count (CBC): Measures the levels of different blood cells. Leukemia patients often show abnormal white blood cell counts, low red blood cell counts (anemia), and low platelet counts (thrombocytopenia).
+
+2. Peripheral Blood Smear: A microscopic examination of blood cells to identify abnormal cells, including blast cells.
+
+3. Bone Marrow Biopsy and Aspiration: The gold standard for leukemia diagnosis. A sample of bone marrow is extracted, usually from the hip bone, and examined for the percentage and type of blast cells.
+
+4. Flow Cytometry: Identifies specific proteins on cell surfaces (immunophenotyping) to determine the exact type of leukemia.
+
+5. Cytogenetic Analysis: Examines chromosomes for abnormalities such as the Philadelphia chromosome in CML or t(8;21) in AML.
+
+6. Molecular Testing: Detects specific gene mutations and fusion genes (e.g., BCR-ABL1, FLT3, NPM1) that help classify leukemia subtypes and guide treatment decisions.
+
+7. Lumbar Puncture: In ALL, a spinal tap may be performed to check if leukemia has spread to the central nervous system.
+
+## Treatment of Leukemia
+
+### Chemotherapy
+Chemotherapy remains the cornerstone of leukemia treatment. For ALL, treatment typically follows phases: induction (to achieve remission), consolidation (to eliminate remaining disease), and maintenance (to prevent relapse). Common drugs include vincristine, prednisone, daunorubicin, and L-asparaginase. For AML, the standard induction regimen is "7+3" — seven days of cytarabine and three days of an anthracycline.
+
+### Targeted Therapy
+Targeted therapies have transformed leukemia treatment. Tyrosine kinase inhibitors (TKIs) — imatinib, dasatinib, nilotinib, bosutinib, and ponatinib — are the standard first-line treatment for CML. For CLL, BTK inhibitors (ibrutinib, acalabrutinib) and BCL-2 inhibitors (venetoclax) have significantly improved outcomes. FLT3 inhibitors (midostaurin, gilteritinib) are used for FLT3-mutated AML.
+
+### Immunotherapy
+Immunotherapy approaches include monoclonal antibodies (rituximab for CLL, gemtuzumab ozogamicin for AML), bispecific T-cell engagers (blinatumomab for ALL), and CAR-T cell therapy (tisagenlecleucel for relapsed/refractory ALL). These therapies harness the immune system to target and destroy leukemia cells.
+
+### Stem Cell Transplantation
+Allogeneic hematopoietic stem cell transplantation (HSCT) is a potentially curative treatment for high-risk or relapsed leukemia. It involves replacing the patient's diseased bone marrow with healthy donor stem cells. The procedure carries significant risks including graft-versus-host disease (GVHD) and infection.
+
+### Radiation Therapy
+Radiation therapy is used less frequently in leukemia compared to solid tumors. It may be used for central nervous system prophylaxis in ALL, for symptomatic splenomegaly, or as part of the conditioning regimen before stem cell transplantation.
+
+## Risk Factors for Leukemia
+
+Known risk factors for developing leukemia include:
+- Previous chemotherapy or radiation therapy for other cancers
+- Genetic disorders such as Down syndrome, Fanconi anemia, and Li-Fraumeni syndrome
+- Exposure to high levels of radiation
+- Exposure to certain chemicals, particularly benzene
+- Smoking (associated with increased risk of AML)
+- Family history of leukemia (especially CLL)
+- Age (risk increases with age for most types)
+- Male sex (slightly higher incidence in males)
+
+## Prognosis and Survival Rates
+
+Prognosis varies significantly by leukemia type, age, and genetic features:
+- ALL in children: 5-year survival rate approximately 90%
+- ALL in adults: 5-year survival rate approximately 40%
+- AML: 5-year survival rate approximately 30% overall, higher in favorable-risk cytogenetics
+- CLL: Median survival ranges from 5 to more than 20 years depending on stage and genetic markers
+- CML: With TKI therapy, 10-year survival rate exceeds 80%, dramatically improved from the pre-imatinib era
+
+Prognostic factors include age at diagnosis, white blood cell count at presentation, cytogenetic abnormalities, response to initial therapy, and presence of minimal residual disease (MRD) after treatment.
+
+## Minimal Residual Disease (MRD)
+
+Minimal Residual Disease refers to the small number of leukemia cells that remain in the body after treatment, even when the patient appears to be in complete remission. MRD is detected using highly sensitive techniques such as flow cytometry (sensitivity of 1 in 10,000 cells) or PCR-based methods (sensitivity of 1 in 100,000 to 1 in 1,000,000 cells). MRD status is an important prognostic factor — patients who achieve MRD-negative status have significantly better outcomes. In CML, molecular response is monitored by measuring BCR-ABL1 transcript levels, with major molecular response (MMR) defined as BCR-ABL1 ≤ 0.1% on the International Scale.
+
+## Living with Leukemia
+
+Patients living with leukemia face several challenges:
+- Fatigue is the most common symptom, affecting daily activities
+- Increased susceptibility to infections due to compromised immune function
+- Regular monitoring through blood tests and bone marrow biopsies
+- Emotional and psychological impact including anxiety, depression, and fear of relapse
+- Long-term side effects of treatment including cardiac toxicity, secondary cancers, and fertility issues
+- Need for ongoing follow-up care, potentially for years after treatment completion
+- Support resources include patient advocacy groups, counseling services, and survivorship programs

@@ -3,7 +3,7 @@ name = "stt-tts-tti-itt-models-experiments"
 version = "0.1.0"
 description = "STT and TTS API with multiple provider support"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<3.14"
 dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.34.0",
@@ -11,5 +11,26 @@ dependencies = [
     "pydantic-settings>=2.0.0",
     "httpx>=0.28.0",
     "python-multipart>=0.0.18",
-    "pipecat-ai>=0.0.106",
+    "pipecat-ai[webrtc,daily,silero,deepgram,openai,cartesia,local-smart-turn-v3,runner]>=0.0.106",
+    "pipecat-ai-cli",
+    "torch",
+    "certifi>=2025.11.12",
+    "deepeval>=3.7.5",
+    # LlamaIndex for vector storage and indexing
+    "llama-index-core>=0.14.7",
+    "llama-index-llms-openai>=0.6.7",
+    "llama-index-embeddings-openai>=0.5.1",
+    "llama-index-embeddings-google-genai>=0.3.1",
+    "llama-index-embeddings-ollama>=0.8.4",
+    "llama-index-vector-stores-qdrant>=0.9.0",
+    "llama-index-embeddings-huggingface>=0.7.0",
+    # Vector search engine
+    "qdrant-client>=1.16.2",
+    # Embedding
+    "sentence-transformers>=5.0.0",
+]
+
+[tool.uv]
+override-dependencies = [
+    "onnxruntime==1.20.1",
 ]

@@ -14,6 +14,8 @@ from pipecat.frames.frames import (
     TextFrame,
     TTSAudioRawFrame,
     TranscriptionFrame,
+    VADUserStartedSpeakingFrame,
+    VADUserStoppedSpeakingFrame,
 )
 from pipecat.processors.frame_processor import FrameProcessor
 from pipecat.services.openai.stt import OpenAISTTService
@@ -133,10 +135,18 @@ class PipecatService:
             sample_rate = 16000
             num_channels = 1
 
-        audio_frame = InputAudioRawFrame(audio=pcm_data, sample_rate=sample_rate, num_channels=num_channels)
+        # Chunk size: 20ms of 16-bit audio
+        chunk_size = sample_rate * num_channels * 2 // 50
 
         async def feed_audio():
-            await task.queue_frame(audio_frame)
+            await task.queue_frame(VADUserStartedSpeakingFrame())
+            for i in range(0, len(pcm_data), chunk_size):
+                chunk = pcm_data[i:i + chunk_size]
+                await task.queue_frame(
+                    InputAudioRawFrame(audio=chunk, sample_rate=sample_rate, num_channels=num_channels)
+                )
+            await task.queue_frame(VADUserStoppedSpeakingFrame())
+            await asyncio.sleep(0.5)
             await task.queue_frame(EndFrame())
 
         await asyncio.gather(runner.run(task), feed_audio())
@@ -206,10 +216,17 @@ class PipecatService:
             sample_rate = 16000
             num_channels = 1
 
-        audio_frame = InputAudioRawFrame(audio=pcm_data, sample_rate=sample_rate, num_channels=num_channels)
+        chunk_size = sample_rate * num_channels * 2 // 50
 
         async def feed_audio():
-            await task.queue_frame(audio_frame)
+            await task.queue_frame(VADUserStartedSpeakingFrame())
+            for i in range(0, len(pcm_data), chunk_size):
+                chunk = pcm_data[i:i + chunk_size]
+                await task.queue_frame(
+                    InputAudioRawFrame(audio=chunk, sample_rate=sample_rate, num_channels=num_channels)
+                )
+            await task.queue_frame(VADUserStoppedSpeakingFrame())
+            await asyncio.sleep(0.5)
             await task.queue_frame(EndFrame())
 
         await asyncio.gather(runner.run(task), feed_audio())

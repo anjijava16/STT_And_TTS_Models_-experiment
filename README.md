@@ -320,6 +320,32 @@ curl -X 'POST' \
  vary: Origin 
 ```
 
+# Pipecat Operations
+
+## Input
+
+curl -X 'POST' \
+  'http://localhost:8047/api/v1/pipecat/stt' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'audio=@Arthur.mp3;type=audio/mpeg' \
+  -F 'provider=openai' \
+  -F 'language=en' \
+  -F 'model=whisper-1'
+
+## Output
+
+```
+	
+Response body
+Download
+{
+  "provider": "openai",
+  "transcript": "The story of Arthur the Rat. Once upon a time, there was a young rat who couldn't make up his mind. Whenever the other rats asked him if he would like to come out hunting with them, he would answer in a hoarse voice, I don't know. And when they said, would you rather stay inside, he would say yes or no either. He'd always shake making a choice. One fine day, his Aunt Josephine said to him, now look here, no one will ever care for you if you carry on like this. You have no more mind of your own than a greasy old blade of grass. The young rat coughed and looked quiet as usual, but said nothing. Don't you think so, said his aunt, stamping her foot, for she couldn't bear to see the young rat so cold-blooded. I don't know, was all he ever answered. And then he walked off to think for an hour or more, whether he would stay in his hole in the ground or go out into the loft. One night the rats heard a loud noise in the loft. It was a very dreary old place. The roof let the rain come down, come washing in. The beams and the rafters had all rotted through. So the whole thing was quite unsafe. At last one of the joists gave way, and the beams fell with one edge on the floor. The walls shook, the cupola fell off, and all the rats' hair stood on end with fear and horror. This won't do, city leader. We can't stay cooped up here any longer. So they sent out scouts to search for a new home. A little later on that evening, the scouts came back and said they'd find an old-fashioned art farm where there would be room for all of them. The leader gave the order at once. Come new fallen in. And the rats crawled out of the hole right away and stood on the floor in a long line. Just then the old rat caught sight of young Arthur. That was the name of the shaker. He wasn't in the line, and he wasn't exactly outside it. He stood just by it. Come on, get in line. Growled the old rat coarsely. Of course you're coming too. I don't know, said Arthur calmly. Why, the idea of it. You don't think it's safe here anymore, do you? I'm not certain, said Arthur undaunted. The roof may not fall down yet. Well, said the old rat, you can't wait for you to join us. Then he turned to the other and shouted right about the face. Marked. And the long line marched out the barn while the young rat watched him. I think I'll go tomorrow, he said to himself. But then again, perhaps I won't. It's so nice and snug here. I guess I'll go back to my hole under the log for a while just to make up my mind. But during the night there was a big crash. Down came beams, rafters, joists, the whole business. Next morning, it was a foggy day. Some men came to look over the damage. It seemed odd to them that the old building was not haunted by rats. But at last one of them happened to move aboard, and he caught sight of a young rat, quite dead, half in and half out of his hole. Thus the shirker got his due and there was no mourning for him.",
+  "language": "en"
+}
+```
+
 # STT_And_TTS_Models_-experiment
 
 Here’s a **clear list of Speech-to-Text (STT)** and **Text-to-Speech (TTS)** models, divided into **Open-Source** and **Paid/API** ones (commonly used in voice-AI pipelines like the one you showed).
