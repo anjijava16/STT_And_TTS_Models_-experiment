@@ -1,0 +1,15 @@
+[project]
+name = "stt-tts-tti-itt-models-experiments"
+version = "0.1.0"
+description = "STT and TTS API with multiple provider support"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "httpx>=0.28.0",
+    "python-multipart>=0.0.18",
+    "pipecat-ai>=0.0.106",
+]
