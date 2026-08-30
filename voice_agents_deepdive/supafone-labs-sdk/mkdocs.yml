@@ -1,0 +1,44 @@
+site_name: Supafone Labs
+site_description: Production infrastructure for building, supervising, testing, and operating voice agents across providers.
+site_url: https://labs.supafone.ai/
+repo_url: https://github.com/samthedataman/supafone-labs
+repo_name: supafone/labs
+
+theme:
+  name: material
+  logo: assets/supafone-logo.png
+  favicon: assets/supafone-logo.png
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: cyan
+      toggle: { icon: material/weather-night, name: Dark mode }
+    - scheme: slate
+      primary: indigo
+      accent: cyan
+      toggle: { icon: material/weather-sunny, name: Light mode }
+  features:
+    - content.code.copy
+    - navigation.instant
+    - navigation.sections
+    - navigation.tabs
+    - navigation.top
+    - search.highlight
+    - search.suggest
+
+nav:
+  - Why Supafone: index.md
+  - Quickstart: quickstart.md
+  - Framework Coverage: providers.md
+  - Hosted Agents API: hosted-agents-api.md
+  - Outbound IVR Call Mode: outbound-ivr-call-mode.md
+  - Language and Voice Routing: live-language-voice-routing.md
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - tables

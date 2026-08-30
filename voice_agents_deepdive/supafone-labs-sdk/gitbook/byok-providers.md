@@ -1,0 +1,242 @@
+# BYOK Providers
+
+BYOK means "bring your own keys." It is powerful, but it should not be the
+default path. The default path is Supafone-managed infrastructure with one
+Supafone key.
+
+## Managed First
+
+```json
+{
+  "labs": {
+    "enabled": true,
+    "mode": "supafone_managed",
+    "managedInfrastructure": true,
+    "model": "gemma"
+  },
+  "telephony": {
+    "mode": "supafone_managed",
+    "provider": "supafone"
+  }
+}
+```
+
+Use this when the developer wants to launch quickly and bill usage through
+Supafone.
+
+## Independent provider domains
+
+Do not collapse BYOK into one generic "provider keys" bucket. Hosted delivery
+has three independent provisioning lanes; Supervisor deployments add independent
+STT and supervisor-LLM credentials:
+
+| Lane | What it means | Common providers |
+| --- | --- | --- |
+| Agent/provider stack | The realtime agent, orchestration, or model runtime the customer already runs | Any of the [14 audited runtime adapters](framework-support.md) |
+| Telephony | The carrier, trunk, SIP, and phone-network layer | Twilio, Telnyx, Plivo, SignalWire, SIP/custom trunks |
+| TTS | The voice-rendering provider | Cartesia, ElevenLabs, Inworld, Deepgram, custom TTS |
+| STT | The transcript and language-authority provider | Deepgram or provider-native streams |
+| Supervisor LLM | The model that forms Supervisor directives | Supafone hosted, Anthropic, OpenAI, xAI, custom LLM |
+
+Each domain can be managed by Supafone or brought by the customer. For example,
+a customer can bring Telnyx telephony and Cartesia TTS while still using
+Supafone's managed supervisor, or bring an entire Ultravox stack and use Supafone
+only for self-healing directives and logs.
+
+## Native / BYOK Ultravox Runtime
+
+The hosted-agent **runtime** — where Supafone actually places and monitors the
+call — runs on Ultravox. By default it uses Supafone's managed platform key
+(managed billing). You can instead run agents on your **own** Ultravox account:
+your key, your billing. The agent is then both **placed and monitored** on your
+key, and `runtime_mode` becomes `"byok"`. Managed remains the default.
+
+Two ways to connect it:
+
+**1. At agent create**, in the `byok` block:
+
+```json
+{
+  "byok": {
+    "ultravox": {
+      "api_key": "uvx_...",
+      "base_url": "https://api.ultravox.ai/api"
+    }
+  }
+}
+```
+
+`base_url` is optional. A `byok.credentials` object is also accepted as the key
+holder. The key is stored **encrypted on your account, never in the agent doc**.
+
+**2. Later or standalone**, via `PUT /api/v1/labs/runtime`:
+
+```bash
+curl https://api.supafone.ai/api/v1/labs/runtime \
+  -X PUT \
+  -H "Authorization: Bearer $SUPAFONE_LABS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "ultravox",
+    "credentials": { "api_key": "uvx_...", "base_url": "https://api.ultravox.ai/api" }
+  }'
+```
+
+A blank `api_key` keeps the stored key, so you can re-save other fields. A
+non-`ultravox` provider returns **400 "coming soon"** — Ultravox is the only
+runtime today, managed or BYOK. `GET /api/v1/labs/runtime` returns the same
+status shape:
+
+```json
+{
+  "account_id": "...",
+  "provider": "ultravox",
+  "managed": false,
+  "byok_connected": true,
+  "base_url": "https://api.ultravox.ai/api",
+  "updated_at": "2026-07-11T00:00:00Z"
+}
+```
+
+This runtime lane is distinct from the supervisor provider keys below: those bring
+your own STT/LLM/TTS for supervision, while this runs the agent itself on your
+Ultravox account. See [Hosted Agents API](hosted-agents-api.md) for the full
+create/runtime contract and the runtime block returned on agent create.
+
+## BYOK Supervisor Providers
+
+```json
+{
+  "labs": {
+    "enabled": true,
+    "mode": "byok",
+    "managedInfrastructure": false,
+    "stt": { "provider": "deepgram", "model": "nova-3" },
+    "llm": { "provider": "openai", "model": "gpt-4.1-mini" },
+    "tts": { "provider": "elevenlabs" }
+  },
+  "byok": {
+    "llm": { "provider": "openai", "apiKey": "$OPENAI_API_KEY" },
+    "stt": { "provider": "deepgram", "apiKey": "$DEEPGRAM_API_KEY" },
+    "tts": { "provider": "elevenlabs", "apiKey": "$ELEVENLABS_API_KEY" }
+  }
+}
+```
+
+Supported agent/provider-stack fields include:
+
+| Provider | Field |
+| --- | --- |
+| Ultravox | `ultravoxApiKey` |
+| Retell | `retellApiKey` |
+| Vapi | `vapiApiKey` |
+| Bland | `blandApiKey` |
+| LiveKit | `livekitApiKey`, `livekitApiSecret` |
+| Pipecat | `pipecatApiKey` |
+| OpenAI Realtime | `openaiApiKey` |
+| Grok/xAI | `xaiApiKey` |
+| Gemini Live | `geminiApiKey` or Google Cloud credentials |
+| Inworld Realtime | `inworldApiKey` |
+
+Supported TTS/STT fields include:
+
+| Provider | Field |
+| --- | --- |
+| Deepgram | `deepgramApiKey` |
+| Cartesia | `cartesiaApiKey` |
+| ElevenLabs | `elevenlabsApiKey` |
+| Inworld | `inworldApiKey` |
+
+## BYOK Telephony
+
+```ts
+await supafone.labs.telephony.configure({
+  mode: "byok",
+  provider: "twilio",
+  credentials: {
+    accountSid: process.env.TWILIO_ACCOUNT_SID!,
+    apiKey: process.env.TWILIO_API_KEY_SID!,
+    apiSecret: process.env.TWILIO_API_KEY_SECRET!,
+    fromNumber: "+14155550123"
+  }
+});
+```
+
+The telephony BYOK provider can be `twilio`, `telnyx`, `plivo`, `sip`, or any
+provider label the hosted API supports for that account. The UI should show
+the common carriers but the SDK should pass through custom provider labels.
+
+Common carrier credential fields:
+
+| Provider | Common fields |
+| --- | --- |
+| Twilio | `accountSid`, `authToken`, `apiKey`, `apiSecret`, `fromNumber` |
+| Telnyx | `apiKey`, `connectionId`, `fromNumber` |
+| Plivo | `authId`, `authToken`, `fromNumber` |
+| SignalWire | `projectId`, `token`, `signalwireSpaceUrl`, `fromNumber` |
+| SIP/custom | `sipTrunkUri`, `sipHost`, `username`, `password`, `headers` |
+
+Custom SIP:
+
+```ts
+await supafone.labs.telephony.configure({
+  mode: "byok",
+  provider: "sip",
+  customSip: {
+    sipTrunkUri: process.env.SIP_TRUNK_URI!,
+    username: process.env.SIP_USERNAME!,
+    password: process.env.SIP_PASSWORD!,
+    headers: { "X-Customer": "northline" }
+  }
+});
+```
+
+## UI Credential Rules
+
+- Keep Supafone-managed selected by default.
+- Store BYOK keys only through secure backend/account endpoints.
+- Mask stored values on readback.
+- Treat blank fields on update as "keep existing value."
+- Never put provider secrets in exported code unless the user explicitly asks
+  for env var placeholders.
+- Export env var names, not raw secrets.
+
+Good exported code:
+
+```ts
+byok: {
+  agentProvider: {
+    provider: "ultravox",
+    apiKey: process.env.ULTRAVOX_API_KEY!
+  },
+  telephony: {
+    mode: "byok",
+    provider: "telnyx",
+    credentials: { apiKey: process.env.TELNYX_API_KEY! }
+  },
+  tts: {
+    provider: "cartesia",
+    apiKey: process.env.CARTESIA_API_KEY!
+  }
+}
+```
+
+Bad exported code:
+
+```ts
+providerKeys: {
+  cartesiaApiKey: "real-secret-here"
+}
+```
+
+## When BYOK Is Worth It
+
+Use BYOK when the customer:
+
+- already has a negotiated vendor contract,
+- needs vendor-specific voice/model controls,
+- has existing telephony compliance infrastructure,
+- wants invoices to remain with the provider,
+- needs migration from an existing voice stack.
+
+Otherwise, use Supafone-managed.

@@ -1,0 +1,572 @@
+# Hosted Agents API
+
+Use the Supafone Labs API when you want Supafone to host the voice/web/campaign
+agent for you. This is a convenience layer over the Supafone runtime: Ultravox
+calls, multistage state, managed voice provider accounts, tools, transcripts,
+recordings, web widget sync, and Supafone Supervisor stay attached.
+
+Give Supafone the business goal in plain English. The private control plane
+turns it into complete prompts and a validated runtime stage plan, then returns
+that plan alongside the created agent. Developers get something they can show,
+edit, test, and version—not an invisible prompt hidden behind an API.
+
+For customers, that means the first agent can answer, qualify, route, book, and
+produce call artifacts without a week of provider integration. For developers,
+it means one Supafone key, one contract across Python/TypeScript/MCP, and no
+Anthropic/OpenRouter credential shipped to a browser or client environment.
+
+The public namespace is:
+
+```text
+https://api.supafone.ai/api/v1/labs
+```
+
+The compatibility namespace `/api/v1/developer` exists for older clients, but
+new code should use `/api/v1/labs`.
+
+## REST endpoint reference
+
+The full public hosted namespace is available without either SDK:
+
+| Area | Endpoints |
+| --- | --- |
+| Discovery | `GET /capabilities`, `GET /presets`, `GET /tools` |
+| Planning | `POST /agent-plans` |
+| Agents | `POST /agents`, `GET /agents`, `GET /agents/{agent_key}`, `DELETE /agents/{agent_key}` |
+| Voices | `GET /voices`, `GET /voices/preview` |
+| Runtime | `GET /runtime`, `PUT /runtime` |
+| Telephony | `GET /telephony`, `PUT /telephony` |
+| Numbers | `POST /phone-numbers/search`, `GET /phone-numbers`, `POST /phone-numbers`, assign, unassign, release, and delete by ID |
+| Calls | `GET /calls`, `GET /calls/{call_id}` |
+| Recordings | list, fetch, and remove under `/recordings` |
+| Transcripts | list and fetch under `/transcripts` |
+
+Python, TypeScript, and MCP wrap this same REST contract. The sections below
+cover the request shapes, role rules, safe retries, and error behavior for
+developers using REST directly.
+
+Agent creation can opt into two to four same-call language/voice profiles with
+an automatically translated primary greeting. See
+[Live language and voice routing](live-language-voice-routing.md).
+
+The recommended TypeScript package is `supafone-labs`:
+
+```ts
+import { Supafone } from "supafone-labs";
+
+const supafone = new Supafone({
+  apiKey: process.env.SUPAFONE_TOKEN!,
+});
+
+const agent = await supafone.labs.agents.createInboundWithNumber({
+  agentKey: "northline-intake",
+  name: "Northline intake",
+  assistantName: "Maya",
+  description: "Answer new inquiries, understand the request, and book the right next step.",
+  websiteUrl: "https://northline.example",
+  number: { search: { areaCode: "415" } },
+  labs: { enabled: true, model: "gemma" },
+});
+
+console.log(agent.agent.agent_key, agent.number?.number.phone_number);
+```
+
+## Auth
+
+Use the linked `sl_live_...` Supafone key for the simplest experience. The same
+key authenticates hosted agent creation, call-plan generation, Labs model
+services, MCP, campaigns, and calls according to its account and scopes.
+Existing scoped `sf_live_...` product keys remain supported for product-only
+integrations.
+
+```bash
+export SUPAFONE_TOKEN=sl_live_...
+export SUPAFONE_API_BASE_URL=https://api.supafone.ai
+```
+
+Pass the key as a bearer token:
+
+```bash
+curl "$SUPAFONE_API_BASE_URL/api/v1/labs/capabilities" \
+  -H "Authorization: Bearer $SUPAFONE_TOKEN"
+```
+
+Bearer authentication is recommended. Raw credentials are never placed in
+URLs, generated plans, dashboard links, or agent configuration responses.
+
+## Generate the plan before creating the agent
+
+```http
+POST /api/v1/labs/agent-plans
+Authorization: Bearer sl_live_...
+Content-Type: application/json
+
+{
+  "description": "Call warm homeowners, qualify the project, and schedule an estimate.",
+  "business_name": "Northline Roofing",
+  "direction": "outbound",
+  "stage_count": 5,
+  "stage_detail": "detailed",
+  "tools": { "scheduling": true, "sms": true }
+}
+```
+
+The response includes `base_system_prompt`, `call_stages`, `generated_by`,
+`model`, and `fallback`. Agent creation runs this planner automatically when
+`call_stages` is omitted. If you submit an explicit reviewed stage array,
+Supafone validates and executes that exact plan.
+
+## API keys
+
+Creating, listing, and revoking API keys is an account-admin action. It uses the
+normal Supafone app user session/JWT, not the Labs key itself:
+
+```http
+POST   /api/v1/labs/api-keys
+GET    /api/v1/labs/api-keys?agency_id=...
+DELETE /api/v1/labs/api-keys/{key_id}?agency_id=...
+```
+
+Create body:
+
+```json
+{
+  "agency_id": "00000000-0000-0000-0000-000000000000",
+  "name": "Production key",
+  "scopes": [
+    "agents:write",
+    "agents:read",
+    "voices:read",
+    "calls:write",
+    "numbers:read",
+    "numbers:write",
+    "telephony:read",
+    "telephony:write"
+  ]
+}
+```
+
+Create response returns the raw key once:
+
+```json
+{
+  "api_key": "sf_live_...",
+  "key": {
+    "id": "key-id",
+    "name": "Production key",
+    "agency_id": "00000000-0000-0000-0000-000000000000",
+    "key_prefix": "sf_live_xxx...abcd",
+    "scopes": ["agents:write", "agents:read", "voices:read", "calls:write", "numbers:read", "numbers:write", "telephony:read", "telephony:write"],
+    "last_used_at": null,
+    "revoked_at": null,
+    "created_at": "2026-07-06T00:00:00Z",
+    "updated_at": "2026-07-06T00:00:00Z"
+  }
+}
+```
+
+List and revoke responses never include the raw key or hash.
+
+## Discovery
+
+Start with capabilities so your app can check what the key can do:
+
+```bash
+curl "$SUPAFONE_API_BASE_URL/api/v1/labs/capabilities" \
+  -H "Authorization: Bearer $SUPAFONE_TOKEN"
+```
+
+Important response fields:
+
+```json
+{
+  "product": "Supafone Labs",
+  "api_namespace": "/api/v1/labs",
+  "default_agent_contract": {
+    "provider": "ultravox",
+    "ultravox_superclass": true,
+    "managed_provider_accounts": true,
+    "requires_developer_provider_keys": false,
+    "runtime_mode": "multi_stage",
+    "default_preset_key": "general_intake_receptionist",
+    "labs_label": "Supafone Supervisor",
+    "default_watcher_model": "gemma",
+    "recording": true,
+    "transcription": true,
+    "web_widget": true,
+    "agent_styles": ["inbound", "outbound"],
+    "byok": {
+      "ultravox": { "api_key": "string", "base_url": "string (optional)" }
+    },
+    "default_telephony": {
+      "mode": "supafone_managed",
+      "provider": "supafone",
+      "number_buying": "supafone_master_twilio",
+      "requires_developer_twilio_account": false
+    }
+  },
+  "runtimes": {
+    "available": ["ultravox"],
+    "managed": "ultravox",
+    "byok": ["ultravox"],
+    "coming_soon": ["vapi", "retell", "bland", "livekit", "pipecat"]
+  }
+}
+```
+
+The `runtimes` block reports what runs today: Ultravox is available both
+**managed** (Supafone's platform key) and **BYOK** (your own key). Vapi, Retell,
+Bland, LiveKit, and Pipecat are still coming soon and their agent runtimes
+return `400 "coming soon"`.
+
+List presets:
+
+```bash
+curl "$SUPAFONE_API_BASE_URL/api/v1/labs/presets" \
+  -H "Authorization: Bearer $SUPAFONE_TOKEN"
+```
+
+List built-in tools:
+
+```bash
+curl "$SUPAFONE_API_BASE_URL/api/v1/labs/tools" \
+  -H "Authorization: Bearer $SUPAFONE_TOKEN"
+```
+
+List Supafone-managed voices:
+
+```bash
+curl "$SUPAFONE_API_BASE_URL/api/v1/labs/voices?provider=cartesia" \
+  -H "Authorization: Bearer $SUPAFONE_TOKEN"
+```
+
+Voice responses include:
+
+```json
+{
+  "voices": [],
+  "total": 0,
+  "providers": [
+    {
+      "key": "cartesia",
+      "name": "Cartesia through Ultravox",
+      "managed_by": "supafone",
+      "requires_developer_provider_key": false
+    }
+  ],
+  "provider_accounts": {
+    "mode": "supafone_managed",
+    "requires_developer_provider_keys": false,
+    "optional_provider_override_enabled": false
+  }
+}
+```
+
+## Create an agent
+
+```bash
+curl "$SUPAFONE_API_BASE_URL/api/v1/labs/agents" \
+  -X POST \
+  -H "Authorization: Bearer $SUPAFONE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_key": "northline-web-intake",
+    "agent_type": "web",
+    "style": "inbound",
+    "name": "Website intake agent",
+    "assistant_name": "Alex",
+    "business_name": "Northline Studio",
+    "industry": "professional_services",
+    "website_url": "https://example.com",
+    "preset_key": "general_intake_receptionist",
+    "runtime_mode": "multi_stage",
+    "voice": {
+      "provider": "cartesia",
+      "voice_id": "Jacqueline"
+    },
+    "labs": {
+      "enabled": true,
+      "model": "gemma"
+    },
+    "tools": {
+      "call_routing": true,
+      "scheduling": true,
+      "sms": true,
+      "email": true,
+      "firm_knowledge": true,
+      "voicemail": true
+    },
+    "metadata": {
+      "external_id": "acct_123"
+    }
+  }'
+```
+
+The SDK accepts camelCase names such as `agentKey`, `assistantName`,
+`websiteUrl`, `runtimeMode`, `callRouting`, and `firmKnowledge`; raw HTTP accepts
+the snake_case names shown above.
+
+To run the agent on your **own** Ultravox account (your key, your billing), add a
+`byok.ultravox` block to the create body —
+`{"api_key": "uvx_...", "base_url": "https://api.ultravox.ai/api"}` (`base_url`
+optional; a `byok.credentials` object is also accepted as the key holder). The
+key is stored encrypted on your account, never in the agent doc, and
+`runtime_mode` becomes `"byok"`. It can also be connected standalone with
+`PUT /api/v1/labs/runtime` (see [Runtime](#runtime-managed-vs-byok-ultravox)).
+
+Create response:
+
+```json
+{
+  "success": true,
+  "agent": {
+    "agent_key": "northline-web-intake",
+    "agent_type": "web",
+    "display_name": "Website intake agent",
+    "runtime_mode": "multi_stage",
+    "preset_key": "general_intake_receptionist"
+  },
+  "runtime": {
+    "provider": "ultravox",
+    "managed": true,
+    "key_source": "platform",
+    "status": "ready",
+    "model": "...",
+    "direction": "inbound",
+    "telephony": { "mode": "supafone_managed", "provider": "supafone" }
+  },
+  "widget": {
+    "widget_key": "sf_...",
+    "snippet": "<script async src=\"https://supafone.ai/widget.js\" ...></script>"
+  }
+}
+```
+
+In the `runtime` block, `managed` is `false` and `key_source` is `"byok"` when
+the agent runs on your own Ultravox key; `status` is `"simulated"` when neither a
+platform nor a BYOK runtime key is connected.
+
+## List and fetch agents
+
+List agents:
+
+```bash
+curl "$SUPAFONE_API_BASE_URL/api/v1/labs/agents?agent_type=web" \
+  -H "Authorization: Bearer $SUPAFONE_TOKEN"
+```
+
+Fetch one agent:
+
+```bash
+curl "$SUPAFONE_API_BASE_URL/api/v1/labs/agents/northline-web-intake?agent_type=web" \
+  -H "Authorization: Bearer $SUPAFONE_TOKEN"
+```
+
+The API key is scoped to one Supafone account. Passing another `agency_id`
+returns `403`.
+
+## Update, test, and manage knowledge
+
+Agent lifecycle routes use the stable `agent_key` returned by agent creation:
+
+```ts
+await supafone.labs.agents.update("northline-web-intake", {
+  greeting: "Thanks for contacting Northline. How can I help?",
+});
+const readiness = await supafone.labs.agents.readiness("northline-web-intake");
+if (readiness.ready) await supafone.labs.agents.activate("northline-web-intake");
+```
+
+WebRTC and knowledge routes use the durable `agent.id` from the same response:
+
+```ts
+await supafone.labs.agents.syncKnowledge(agent.agent.id!, {
+  websiteUrl: "https://example.com",
+});
+await supafone.labs.agents.uploadKnowledgeDocument(
+  agent.agent.id!,
+  fileBytes,
+  "policies.pdf",
+);
+const answer = await supafone.labs.agents.chatKnowledge(
+  agent.agent.id!,
+  "What is the cancellation policy?",
+);
+const browserCall = await supafone.labs.agents.startWebRtcCall(agent.agent.id!);
+```
+
+The corpus is account-isolated and managed by Supafone. Retrieval uses a safe
+fallback when semantic search is unavailable; private storage, embedding, and
+routing implementation is intentionally not part of the SDK contract.
+
+## Phone numbers and telephony
+
+The default path is Supafone-managed. Developers do **not** need a Twilio
+account to search, buy, assign, or route a number. Supafone buys through its
+managed telephony account, configures webhooks, and keeps the line synced to the
+same account, dashboard, recordings, transcripts, and call artifacts.
+
+Search inventory:
+
+```bash
+curl "$SUPAFONE_API_BASE_URL/api/v1/labs/phone-numbers/search" \
+  -X POST \
+  -H "Authorization: Bearer $SUPAFONE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{ "area_code": "787", "limit": 3 }'
+```
+
+Buy and assign a Supafone-managed number:
+
+```bash
+curl "$SUPAFONE_API_BASE_URL/api/v1/labs/phone-numbers" \
+  -X POST \
+  -H "Authorization: Bearer $SUPAFONE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone_number": "+17875550123",
+    "friendly_name": "Main intake line",
+    "agent_key": "northline-web-intake",
+    "style": "inbound",
+    "preset_key": "general_intake_receptionist",
+    "telephony": { "mode": "supafone_managed", "provider": "supafone" }
+  }'
+```
+
+Attach an already-owned Supafone number to another agent:
+
+```http
+POST /api/v1/labs/phone-numbers/{number_id}/assign
+```
+
+List owned numbers:
+
+```http
+GET /api/v1/labs/phone-numbers
+```
+
+Read or configure telephony:
+
+```http
+GET /api/v1/labs/telephony
+PUT /api/v1/labs/telephony
+```
+
+BYOK is the advanced path for developers who already own provider accounts. It
+is not required for the default Supafone-managed flow. Hosted delivery keeps
+three provisioning lanes separate:
+
+| Lane | Examples |
+| --- | --- |
+| Agent/provider stack | [Fourteen audited runtime adapters](https://github.com/samthedataman/supafone-labs/blob/main/gitbook/framework-support.md) |
+| Telephony | Twilio, Telnyx, Plivo, SignalWire, SIP/custom trunks |
+| TTS | Cartesia, ElevenLabs, Inworld, Deepgram, custom TTS |
+
+Supervisor deployments can separately configure STT and supervisor-LLM
+credentials without changing these hosted-delivery lanes.
+
+BYOK telephony example:
+
+```json
+{
+  "mode": "byok",
+  "provider": "twilio",
+  "credentials": {
+    "account_sid": "AC...",
+    "auth_token": "...",
+    "from_number": "+14155550123"
+  }
+}
+```
+
+Supported BYOK telephony provider labels include `twilio`, `telnyx`, `plivo`,
+`signalwire`, `sip`, and custom provider labels enabled for the account.
+Supafone still keeps the agent framework, stages, tools, transcripts,
+recordings, account sync, and Supafone Supervisor attached.
+
+## Runtime (managed vs BYOK Ultravox)
+
+The agent runtime runs on Ultravox. By default it uses Supafone's managed
+platform key. Connect your **own** Ultravox account to place and monitor agents
+on your key and billing; `runtime_mode` becomes `"byok"`. Managed remains the
+default.
+
+```http
+GET  /api/v1/labs/runtime
+PUT  /api/v1/labs/runtime
+```
+
+Connect or update the key:
+
+```bash
+curl "$SUPAFONE_API_BASE_URL/api/v1/labs/runtime" \
+  -X PUT \
+  -H "Authorization: Bearer $SUPAFONE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "ultravox",
+    "credentials": { "api_key": "uvx_...", "base_url": "https://api.ultravox.ai/api" }
+  }'
+```
+
+`base_url` is optional. A blank `api_key` keeps the stored key so other fields
+can be re-saved. A non-`ultravox` provider returns `400 "coming soon"`. Both
+`GET` and `PUT` return the same status shape:
+
+```json
+{
+  "account_id": "...",
+  "provider": "ultravox",
+  "managed": false,
+  "byok_connected": true,
+  "base_url": "https://api.ultravox.ai/api",
+  "updated_at": "2026-07-11T00:00:00Z"
+}
+```
+
+You can also connect the key at agent create via `byok.ultravox`. Non-Ultravox
+agent runtimes (Vapi, Retell, Bland, LiveKit, Pipecat) still return
+`400 "coming soon"`.
+
+## Supafone Supervisor
+
+Hosted agents include live supervision by default. Set the model only when you
+want to override the managed default:
+
+```json
+{
+  "labs": { "enabled": true, "model": "gemma" }
+}
+```
+
+Older boolean fields remain accepted by the API for backward compatibility,
+but new integrations should use the default behavior and the `labs` block.
+
+## Smoke test
+
+Run the production smoke script before handing an API key to a developer:
+
+```bash
+cd supafone-labs
+SUPAFONE_TOKEN=sl_live_... \
+SUPAFONE_API_BASE_URL=https://api.supafone.ai \
+npx tsx examples/smoke-hosted-agent.ts
+```
+
+The script verifies capabilities, presets, voices, agent creation, fetch-by-key,
+Supafone-managed runtime, no required developer provider keys, and a returned
+web widget snippet.
+
+## What still happens in the Supafone app
+
+Some account operations belong in the main Supafone app/API:
+
+- creating the initial account and user session,
+- creating and revoking Labs API keys,
+- billing and subscription management,
+- call history, recordings, transcripts, leads, and usage views.
+
+Number purchase and assignment now exist in the hosted-agent API as a developer
+surface too; the Supafone app remains the visual setup and billing console.
+The hosted-agent API is intentionally focused on creating and managing agents
+from code while keeping all artifacts synced to the same Supafone account.
